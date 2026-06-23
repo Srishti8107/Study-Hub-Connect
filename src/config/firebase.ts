@@ -3,12 +3,12 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC9pgo25D0RJyeGNmxei9fmLVOBjdXMyyg",
-  authDomain: "lms-new-9628b.firebaseapp.com",
-  projectId: "lms-new-9628b",
-  storageBucket: "lms-new-9628b.firebasestorage.app",
-  messagingSenderId: "384234036534",
-  appId: "1:384234036534:web:85a7e0b193381bbab2a797"
+  apiKey: "AIzaSyBa_uHaAzxouT1DQnrHJQWWltEsY5wh5iA",
+  authDomain: "study-hub-connect-86750.firebaseapp.com",
+  projectId: "study-hub-connect-86750",
+  storageBucket: "study-hub-connect-86750.firebasestorage.app",
+  messagingSenderId: "779847912241",
+  appId: "1:779847912241:web:bccf5b15f5cea72e5bbe10"
 };
 
 // Primary app instance

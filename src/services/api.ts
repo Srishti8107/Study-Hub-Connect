@@ -244,6 +244,7 @@ export async function signIn(payload: {
 
     // Verify user exists in users collection (admin-approved users only)
     const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+    
     if (!userDoc.exists()) {
       if (isAdmin) {
         // Auto-create admin user in Firestore

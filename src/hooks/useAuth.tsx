@@ -103,7 +103,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             full_name: profile?.full_name || firebaseUser.displayName,
             avatar_url: firebaseUser.photoURL,
           };
-          
           setUser(userData);
           setSession({ access_token: token, user: userData });
           setRole(userRole);

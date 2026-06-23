@@ -77,7 +77,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 ## 🔐 Creating the First Admin
 
 ### Option 1: Sign Up Then Upgrade (Recommended)
-1. Navigate to `/auth` and sign up
+<!-- 1. Navigate to `/auth` and sign up -->
 2. Go to Firebase Console → Firestore Database
 3. Find your user document
 4. Change `role` field to `"admin"`
