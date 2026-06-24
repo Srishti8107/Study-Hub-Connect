@@ -79,22 +79,22 @@ self.addEventListener('message', (event) => {
 async function handleCacheVideo(event, { videoId, videoUrl, userId }) {
   try {
     console.log('[SW] Caching video:', videoId);
-    
+    const cacheKey = `video-${userId}-${videoId}`;
     const cache = await caches.open(VIDEO_CACHE_NAME);
-    
+    await cache.put(new Request(cacheKey), response);
     // Fetch the video
     const response = await fetch(videoUrl);
-    
+
     if (!response.ok) {
       throw new Error(`Failed to fetch video: ${response.status}`);
     }
-
-    // Clone the response to read it
     const responseClone = response.clone();
-    
+
+    const blob= await response.blob();
+       
     // Store in cache with custom key including userId for access control
-    const cacheKey = `video-${userId}-${videoId}`;
-    await cache.put(new Request(cacheKey), response);
+  
+
 
     // Also cache with original URL for playback
     await cache.put(videoUrl, responseClone);

@@ -3,6 +3,7 @@ import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
 import * as videoStorage from '@/lib/videoStorage';
 import type { OfflineVideoMetadata } from '@/lib/videoStorage';
+import {saveVideo} from '@/services/downloadService';
 
 interface DownloadProgress {
   videoId: string;
@@ -110,7 +111,7 @@ export function useVideoDownload() {
   const downloadVideo = useCallback(async (
     videoId: string,
     videoUrl: string,
-    title: string
+    title: string,
   ): Promise<void> => {
     if (!user?.id) {
       toast({
@@ -163,21 +164,19 @@ export function useVideoDownload() {
 
       // Start download via service worker
       const response = await fetch(videoUrl);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch video: ${response.status}`);
-      }
-
-      const contentLength = response.headers.get('content-length');
-      const total = contentLength ? parseInt(contentLength, 10) : 0;
-
       const reader = response.body?.getReader();
       if (!reader) {
         throw new Error('Failed to get response reader');
       }
 
+      if (!response.ok) {
+        throw new Error(`Failed to fetch video: ${response.status}`);
+      }
+      
       const chunks: BlobPart[] = [];
       let receivedLength = 0;
+      const contentLength = response.headers.get('content-length');
+      const total = contentLength ? parseInt(contentLength, 10) : 0;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -196,20 +195,18 @@ export function useVideoDownload() {
           return newMap;
         });
 
+        
+
         // Update metadata with progress
         metadata.progress = progress;
         await videoStorage.saveVideoMetadata(metadata);
       }
 
-      // Combine chunks into blob
+      // // Combine chunks into blob
       const blob = new Blob(chunks);
       
       // Cache via service worker
-      await sendMessageToSW('CACHE_VIDEO', {
-        videoId,
-        videoUrl,
-        userId: user.id,
-      });
+      await saveVideo(videoId, blob);
 
       // Update metadata as completed
       metadata.progress = 100;

@@ -12,6 +12,9 @@ export interface OfflineVideoMetadata {
   title: string;
   downloadedAt: number;
   expiresAt: number;
+
+  blob?: Blob;
+
   size?: number;
   progress: number;
   status: 'downloading' | 'downloaded' | 'failed';
@@ -177,3 +180,19 @@ export async function getStorageStats(userId: string): Promise<{
     expiredVideos: expiredVideos.length,
   };
 }
+
+export async function getVideoBlob(
+  videoId: string
+): Promise<Blob | null> {
+
+  const video = await getVideoMetadata(videoId);
+
+  return video?.blob ?? null;
+
+}
+
+export async function playOfflineVideo(videoId: string){
+  const blob = await getVideoBlob(videoId);
+  if (!blob) return null;
+  return URL.createObjectURL(blob);
+} 
