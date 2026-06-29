@@ -7,9 +7,11 @@ import { PasscodeModal } from "@/components/lms/PasscodeModal";
 import { VideoPlayer, VideoList } from "@/components/lms/VideoComponents";
 import { subjects, Subject, Video } from "@/data/subjects";
 import { getAllClassPasscodes, getClassPasscode } from "@/services/api";
-import { ArrowLeft, Calculator, Microscope, BookOpen, Code, PlayCircle, ChevronRight, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Calculator, Microscope, BookOpen, Code, PlayCircle, ChevronRight, CheckCircle2, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useVideoProgress } from "@/hooks/useVideoProgress";
+import { doc, getDoc } from "firebase/firestore"; 
+import { db } from "@/config/firebase";
 
 export default function CategoryView() {
   const { category } = useParams<{ category: string }>();
@@ -24,6 +26,10 @@ export default function CategoryView() {
   const [passcodeModal, setPasscodeModal] = useState<{ open: boolean; subject: Subject | null; className: string }>({ open: false, subject: null, className: "" });
   const [classPasscodes, setClassPasscodes] = useState<Record<string, string>>({});
   const [passcodesLoaded, setPasscodesLoaded] = useState(false);
+// School verification tracking
+  const [schoolProfile, setSchoolProfile] = useState<{ schoolCode?: string; allowedCategories?: Record<string, boolean> } | null>(null);
+  const [verifyingSchool, setVerifyingSchool] = useState(role === "school");
+
   const videoSectionRef = useRef<HTMLDivElement>(null);
   const chapterSectionRef = useRef<HTMLDivElement>(null);
   const selectedVideoRef = useRef<Video | null>(null);
@@ -32,11 +38,33 @@ export default function CategoryView() {
   useEffect(() => { selectedVideoRef.current = selectedVideo; }, [selectedVideo]);
 
   useEffect(() => {
-    if (loading || role === "teacher" || role === "admin") return;
+    if (loading || role === "teacher" || role === "school") return;
     getAllClassPasscodes().then((data) => { setClassPasscodes(data); setPasscodesLoaded(true); });
   }, [loading, role]);
 
   const categoryName = category?.charAt(0).toUpperCase() + category?.slice(1) || "";
+
+  // Dynamic remote school tracking loop
+  useEffect(() => {
+    if (!loading && user && role === "school") {
+      setVerifyingSchool(true);
+      getDoc(doc(db, "users", user.id))
+        .then((snap) => {
+          if (snap.exists()) {
+            setSchoolProfile(snap.data());
+          }
+        })
+        .finally(() => setVerifyingSchool(false));
+    } else {
+      setVerifyingSchool(false);
+    }
+  }, [user, role, loading]);
+
+  const hasAccess = useMemo(() => {
+    if (role !== "school") return true;
+    if (verifyingSchool) return true;
+    return schoolProfile?.allowedCategories?.[categoryName] === true;
+  }, [role, verifyingSchool, schoolProfile, categoryName]);
 
   // Get unique topics for this category
   const topics = useMemo(() => {
@@ -210,6 +238,27 @@ export default function CategoryView() {
   if (loading) return null;
   if (!user) { navigate("/"); return null; }
 
+  // Gated UI layout protection for restricted modules
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container max-w-md mx-auto py-16 px-4 text-center space-y-4">
+          <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto shadow-sm">
+            <ShieldAlert className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground">Access Denied</h2>
+          <p className="text-sm text-muted-foreground">
+            Your school account does not currently hold access permissions for the <strong>{categoryName}</strong> module. Please contact platform administrators.
+          </p>
+          <Button variant="outline" size="sm" onClick={() => navigate("/")} className="mt-2">
+            Return to Dashboard
+          </Button>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -223,6 +272,12 @@ export default function CategoryView() {
       />
 
       <main className="container py-4 sm:py-6 md:py-8 px-4 space-y-6 sm:space-y-8">
+        {/* UNIQUE SCHOOL CODE RENDER GATED FOR THE SCHOOL DASHBOARD LOGGED IN VIEW */}
+        {role === "school" && schoolProfile?.schoolCode && (
+          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 text-purple-700 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold w-fit shadow-sm flex items-center gap-2">
+            <span>🏫</span> School Code: <span className="bg-purple-200 px-2 py-0.5 rounded tracking-wide font-mono text-purple-900">{schoolProfile.schoolCode}</span>
+          </div>
+        )}
         {/* Header with Back Button */}
         <div className="flex flex-col gap-3">
           <Button

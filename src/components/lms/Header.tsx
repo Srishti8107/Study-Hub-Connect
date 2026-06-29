@@ -32,7 +32,7 @@ export function Header() {
   };
 
   const getRoleBadgeVariant = (role: string | null) => {
-    return role === "teacher" ? "default" : "secondary";
+    return role === "teacher" || role === "school" ? "default" : "secondary";
   };
 
   return (
@@ -98,7 +98,7 @@ export function Header() {
                   <KeyRound className="mr-2 h-4 w-4" />
                   <span>Change Password</span>
                 </DropdownMenuItem>
-                {(role === "teacher" || role === "admin") && (
+                {(role === "teacher" || role === "school") && (
                   <DropdownMenuItem onClick={() => setPasscodeDialogOpen(true)}>
                     <Lock className="mr-2 h-4 w-4" />
                     <span>Class Passcode Manager</span>

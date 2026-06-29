@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import logo from '@/components/assets/logo.png';
 import {
   Card,
   CardContent,
@@ -17,10 +18,10 @@ import {
 } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
+  GraduationCap,  
   Shield,
   Users,
   BookOpen,
-  GraduationCap,
   LogOut,
   Settings,
   BarChart,
@@ -58,6 +59,8 @@ interface UserData {
   full_name: string;
   role: string;
   created_at: string;
+  schoolCode?: string;
+  allowedCategories?: Record<string, boolean>;
 }
 
 interface SignupRequest {
@@ -82,6 +85,7 @@ export default function AdminPanel() {
     totalUsers: 0,
     teachers: 0,
     students: 0,
+    schools: 0,
     admins: 0,
     pendingRequests: 0,
   });
@@ -103,12 +107,14 @@ export default function AdminPanel() {
 
       let teachers = 0;
       let students = 0;
+      let schools =0;
       let admins = 0;
 
       const list: UserData[] = snap.docs.map((d) => {
         const data = d.data() as any;
         if (data.role === "teacher") teachers++;
         else if (data.role === "student") students++;
+        else if (data.role === "school") schools++;
         else if (data.role === "admin") admins++;
 
         return {
@@ -117,6 +123,7 @@ export default function AdminPanel() {
           full_name: data.full_name || "",
           role: data.role || "",
           created_at: data.created_at || "",
+          allowedCategories: data.allowedCategories || {Prastuti: false, Anubhav: false, Geomagic: false},
         };
       });
 
@@ -126,6 +133,7 @@ export default function AdminPanel() {
         totalUsers: list.length,
         teachers,
         students,
+        schools,
         admins,
       }));
     } catch (error) {
@@ -169,6 +177,52 @@ export default function AdminPanel() {
     navigate("/admin/login");
   };
 
+  /* ---------------- SCHOOL CHECKBOXES IN ADMIN PANEL -----------------*/
+
+  const handleGenerateSchoolCode = async (userId: string) => {
+    const randomCode = "SH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+    try {
+      await setDoc(doc(db, "users", userId), { schoolCode: randomCode }, { merge: true });
+      toast({
+        title: "School Code Generated",
+        description: `Assigned code: ${randomCode}`,
+      });
+      await refreshUsersAndStats();
+    } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Error generating code",
+        description: err?.message,
+      });
+    }
+  };
+
+  /* ---------------- CATEGORY ACCESS TOGGLE ---------------- */
+  const handleCategoryToggle = async (userId: string, category: string, checked: boolean) => {
+    try {
+      await setDoc(
+        doc(db, "users", userId),
+        {
+          allowedCategories: {
+            [category]: checked,
+          },
+        },
+        { merge: true }
+      );
+      toast({
+        title: "Access Updated",
+        description: `${category} access successfully ${checked ? "granted" : "revoked"}.`,
+      });
+      await refreshUsersAndStats();
+    } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Error updating permissions",
+        description: err?.message,
+      });
+    }
+  };
+
   /* ---------------- APPROVE REQUEST ---------------- */
   const handleApproveRequest = async (request: SignupRequest) => {
     if (!confirm(`Approve signup request for ${request.full_name} (${request.email})?`)) {
@@ -202,6 +256,11 @@ export default function AdminPanel() {
         setProcessingRequest(null);
         return;
       }
+
+      const initialSchoolData = request.role === "school" ? {
+        schoolCode: "SH-" + Math.random().toString(36).substring(2, 8).toUpperCase(),
+        allowedCategories: { Prastuti: false, Anubhav: false, Geomagic: false }
+      } : {};
 
       // Firebase Auth account already exists (created when user signed up).
       // Just add the user to the users collection to grant them access.
@@ -307,7 +366,9 @@ export default function AdminPanel() {
           email: userData.email,
           full_name: userData.full_name,
           role: userData.role,
-          created_at: userData.created_at,
+          created_at: userData.created_at,  
+          schoolCode: userData.schoolCode || "",
+          allowedCategories: userData.allowedCategories || { Prastuti: false, Anubhav: false, Geomagic: false },
           recreated_at: new Date().toISOString(),
         });
       }
@@ -447,6 +508,7 @@ export default function AdminPanel() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-4">
               <CardTitle className="text-xs sm:text-sm font-medium">Students</CardTitle>
+              {/* <img src={logo} className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground"/> */}
               <GraduationCap className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent className="p-3 sm:p-4 pt-0 sm:pt-0">
@@ -457,6 +519,18 @@ export default function AdminPanel() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-4">
+              <CardTitle className="text-xs sm:text-sm font-medium">Schools</CardTitle>
+              {/* <img src={logo} className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground"/> */}
+              <GraduationCap className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="p-3 sm:p-4 pt-0 sm:pt-0">
+              <div className="text-xl sm:text-2xl font-bold">{stats.schools}</div>
+              <p className="text-[10px] sm:text-xs text-muted-foreground">Engaged</p>
+            </CardContent>
+          </Card>
+
+          {/* <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-4">
               <CardTitle className="text-xs sm:text-sm font-medium">Admins</CardTitle>
               <Shield className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
@@ -465,8 +539,8 @@ export default function AdminPanel() {
               <p className="text-[10px] sm:text-xs text-muted-foreground">System</p>
             </CardContent>
           </Card>
-        </div>
-
+         */}
+         </div>
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <div className="overflow-x-auto -mx-4 px-4">
@@ -500,11 +574,6 @@ export default function AdminPanel() {
                 <span className="hidden sm:inline">Settings</span>
                 <span className="sm:hidden">Config</span>
               </TabsTrigger>
-              <TabsTrigger value="passcodes" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-initial">
-                <KeyRound className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Passcodes</span>
-                <span className="sm:hidden">Codes</span>
-              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -536,7 +605,6 @@ export default function AdminPanel() {
                             Requested: {new Date(request.created_at).toLocaleDateString()}
                           </div>
                         </div>
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                           <Badge
                             variant={
                               request.role === "teacher" 
@@ -572,7 +640,6 @@ export default function AdminPanel() {
                             </Button>
                           </div>
                         </div>
-                      </div>
                     ))}
                     {signupRequests.length === 0 && (
                       <div className="text-center py-12 text-muted-foreground">
@@ -610,6 +677,11 @@ export default function AdminPanel() {
                         <div className="flex-1 min-w-0">
                           <div className="font-medium truncate">{user.full_name || "No name"}</div>
                           <div className="text-sm text-muted-foreground truncate">{user.email}</div>
+                          {user.role === "school" && (
+                              <div className="text-xs font-semibold text-purple-600 mt-1 bg-purple-50 px-2 py-0.5 rounded w-fit">
+                                {user.schoolCode ? `School Code: ${user.schoolCode}` : "No Code Assigned"}
+                              </div>
+                          )}
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge
@@ -624,6 +696,11 @@ export default function AdminPanel() {
                           >
                             {user.role}
                           </Badge>
+                          {user.role === "school" && !user.schoolCode && (
+                              <Button size="sm" variant="outline" className="h-8 text-xs text-purple-600 border-purple-300" onClick={() => handleGenerateSchoolCode(user.id)}>
+                                Generate Code
+                              </Button>
+                            )}  
                           {user.role !== "admin" && (
                             <>
                               <Button
@@ -648,7 +725,40 @@ export default function AdminPanel() {
                               </Button>
                             </>
                           )}
-                        </div>
+                        </div> 
+                        {/* LIVE CATEGORY MANAGEMENT CHECKBOXES FOR SCHOOL USERS */}
+                        {user.role === "school" && (
+                          <div className="flex flex-wrap gap-4 items-center mt-1 p-2 bg-slate-50 rounded-md border text-xs">
+                            <span className="font-bold text-slate-500 uppercase tracking-wider mr-2">Category Access:</span>
+                            <label className="flex items-center gap-1.5 font-medium cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                className="rounded text-primary focus:ring-primary h-3.5 w-3.5"
+                                checked={user.allowedCategories?.Prastuti || false} 
+                                onChange={(e) => handleCategoryToggle(user.id, "Prastuti", e.target.checked)}
+                              />
+                              Prastuti
+                            </label>
+                            <label className="flex items-center gap-1.5 font-medium cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                className="rounded text-primary focus:ring-primary h-3.5 w-3.5"
+                                checked={user.allowedCategories?.Anubhav || false} 
+                                onChange={(e) => handleCategoryToggle(user.id, "Anubhav", e.target.checked)}
+                              />
+                              Anubhav
+                            </label>
+                            <label className="flex items-center gap-1.5 font-medium cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                className="rounded text-primary focus:ring-primary h-3.5 w-3.5"
+                                checked={user.allowedCategories?.Geomagic || false} 
+                                onChange={(e) => handleCategoryToggle(user.id, "Geomagic", e.target.checked)}
+                              />
+                              Geomagic
+                            </label>
+                          </div>
+                        )} 
                       </div>
                     ))}
                     {users.length === 0 && (
@@ -714,11 +824,6 @@ export default function AdminPanel() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Passcodes Tab */}
-          <TabsContent value="passcodes" className="space-y-4">
-            <ClassPasscodeManager />
           </TabsContent>
         </Tabs>
       </main>

@@ -43,7 +43,7 @@ export default function TopicView() {
 
   // Preload all class passcodes once auth is ready (only needed for students)
   useEffect(() => {
-    if (loading || role === "teacher" || role === "admin") return;
+    if (loading || role === "teacher" || role === "school") return;
     getAllClassPasscodes().then((data) => {
       setClassPasscodes(data);
       setPasscodesLoaded(true);
