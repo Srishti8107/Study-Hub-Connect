@@ -1,4 +1,4 @@
-import { GraduationCap, LogOut, User, Download, BarChart, KeyRound, Lock } from "lucide-react";
+import { LogOut, User, Download, BarChart, KeyRound, Lock } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ClassPasscodeManager } from "@/components/lms/ClassPasscodeManager";
+import logo from '@/components/assets/logo.png';
 
 export function Header() {
   const { user, role, signOut } = useAuth();
@@ -40,7 +41,8 @@ export function Header() {
       <div className="container flex h-14 sm:h-16 items-center justify-between px-4">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl gradient-bg-primary shadow-primary">
-            <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
+            {/* <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" /> */}
+            <img src={logo} className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground"/>
           </div>
           <div className="flex flex-col">
             <span className="text-base sm:text-lg font-bold tracking-tight" onClick={() => navigate("/")}>StudyHub</span>

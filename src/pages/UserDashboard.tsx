@@ -48,7 +48,7 @@ function buildVideoLookup() {
 }
 
 export default function UserDashboard() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, role, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,7 +58,7 @@ export default function UserDashboard() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) {
+    if (!user || role == "school") {
       navigate("/");
       return;
     }
@@ -70,7 +70,7 @@ export default function UserDashboard() {
       setLoading(false);
     };
     load();
-  }, [user, authLoading, navigate]);
+  }, [user, role, authLoading, navigate]);
 
   if (authLoading || loading) {
     return (

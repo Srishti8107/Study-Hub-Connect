@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GraduationCap } from "lucide-react";
 import { memo } from "react";
+import logo from '@/components/assets/logo.png';
 
 interface ClassFilterProps {
   selectedClass: string | null;
@@ -13,7 +13,7 @@ export const ClassFilter = memo(function ClassFilter({ selectedClass, onSelectCl
   return (
     <div className="flex flex-wrap gap-2 items-center">
       <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
-        <GraduationCap className="h-3 w-3 sm:h-4 sm:w-4" />
+        <img src={logo} className="h-6 w-6 sm:h-8 sm:w-8 text-primary"/>
         <span className="font-medium hidden sm:inline">Filter by Class:</span>
         <span className="font-medium sm:hidden">Class:</span>
       </div>

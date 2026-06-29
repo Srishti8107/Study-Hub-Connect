@@ -6,9 +6,10 @@ import { Header } from "@/components/lms/Header";
 import { CategoryGrid } from "@/components/lms/CategoryGrid";
 import { VideoStats } from "@/components/lms/VideoComponents";
 import { subjects, Subject, Video } from "@/data/subjects";
-import { Loader2, BookOpen, Microscope, Code, TrendingUp, Award, Users, GraduationCap, ArrowRight, Lightbulb } from "lucide-react";
+import { Loader2, BookOpen, Microscope, Code, TrendingUp, Award, Users, ArrowRight, Lightbulb } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import logo from '@/components/assets/logo.png';
 
 export default function Index() {
   const { user, role, loading } = useAuth();
@@ -152,8 +153,9 @@ export default function Index() {
         <nav className="border-b sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
           <div className="container flex h-14 sm:h-16 items-center justify-between px-4">
             <div className="flex items-center gap-2">
-              <GraduationCap className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-              <span className="text-lg sm:text-2xl font-bold">StudyHub</span>
+              <img src={logo} className="h-6 w-6 sm:h-8 sm:w-8 text-primary"/>
+              {/* <GraduationCap className="h-6 w-6 sm:h-8 sm:w-8 text-primary" /> */}
+              <span className="text-lg sm:text-2xl font-bold">Experimind Labs</span>
             </div>
             <Button onClick={() => navigate("/signup")} variant="default" size="sm" className="sm:text-base">
               <span className="hidden sm:inline">Get Started</span>

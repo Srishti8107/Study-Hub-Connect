@@ -13,11 +13,11 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import {
-  GraduationCap,
   Loader2,
   ArrowLeft,
 } from "lucide-react";
 import { z } from "zod";
+import logo from '@/components/assets/logo.png';
 
 /* ---------------- Validation ---------------- */
 
@@ -101,7 +101,7 @@ export default function Signin() {
               <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </Link>
             <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-primary">
-              <GraduationCap className="h-6 w-6 sm:h-7 sm:w-7 text-primary-foreground" />
+              <img src={logo} className="h-6 w-6 sm:h-7 sm:w-7 text-primary-foreground"/>
             </div>
             <div className="w-4 sm:w-5" />
           </div>

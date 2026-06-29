@@ -1,5 +1,7 @@
 // IndexedDB utilities for managing offline video metadata
 
+import { dbPromise } from "@/services/indexedDB";
+
 const DB_NAME = 'lms-video-db';
 const DB_VERSION = 1;
 const STORE_NAME = 'videos';
@@ -184,8 +186,9 @@ export async function getStorageStats(userId: string): Promise<{
 export async function getVideoBlob(
   videoId: string
 ): Promise<Blob | null> {
+  const db = await dbPromise;
 
-  const video = await getVideoMetadata(videoId);
+  const video = await db.get("videos",videoId);
 
   return video?.blob ?? null;
 

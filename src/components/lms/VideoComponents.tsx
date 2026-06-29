@@ -10,6 +10,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useVideoDownload } from "@/hooks/useVideoDownload";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useToast } from "@/hooks/use-toast";
+import * as videoStorage from '@/lib/videoStorage';
+
 
 // VideoCard Component
 interface VideoCardProps {
@@ -20,6 +22,24 @@ interface VideoCardProps {
     percentage: number;
     completed: boolean;
   };
+}
+export function getVideoSrc(video: Video) {
+  const [src, setSrc] = useState<string>('');
+
+  useEffect(() => {
+    let active = true;
+    
+    async function checkStorage() {
+      const offlineUrl = await videoStorage.playOfflineVideo(video.id);
+      if (!active) return;
+      setSrc(offlineUrl || video.url);
+    }
+
+    checkStorage();
+    return () => { active = false; };
+  }, [video.id, video.url]);
+
+  return src;
 }
 
 export const VideoCard = memo(function VideoCard({ video, onClick, isSelected, progress }: VideoCardProps) {
@@ -464,12 +484,11 @@ export function VideoPlayer({ video, startTime = 0, onTimeUpdate, wasCompleted =
         </div>
         <p className="text-sm text-muted-foreground">{video.description}</p>
       </CardHeader>
-      
       <CardContent className="p-0">
         <div className="relative bg-black aspect-video">
           <video
             ref={videoRef}
-            src={video.url}
+            src={getVideoSrc(video)}
             className="h-full w-full"
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}

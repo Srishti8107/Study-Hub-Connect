@@ -15,7 +15,7 @@ import {
 import { doc, setDoc, getDoc, getDocs, collection, deleteDoc, query, where, arrayUnion, increment, writeBatch } from 'firebase/firestore';
 import { auth, db } from '@/config/firebase';
 
-export type AppRole = "admin" | "teacher" | "student";
+export type AppRole = "admin" | "teacher" | "student" | "school";
 
 // Admin emails that can bypass approval and auto-create their accounts
 const ADMIN_EMAILS = [

@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import {
-  GraduationCap,
   UserCircle,
   BookOpen,
   Loader2,
@@ -29,6 +28,7 @@ import {
 import { z } from "zod";
 import * as api from "@/services/api";
 import type { AppRole } from "@/services/api";
+import logo from '@/components/assets/logo.png';
 
 /* ---------------- Constants ---------------- */
 
@@ -248,7 +248,7 @@ export default function Signup() {
               <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </Link>
             <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-primary">
-              <GraduationCap className="h-6 w-6 sm:h-7 sm:w-7 text-primary-foreground" />
+              <img src={logo} className="h-6 w-6 sm:h-7 sm:w-7 text-primary-foreground"/>
             </div>
             <div className="w-4 sm:w-5" />
           </div>
@@ -418,6 +418,24 @@ export default function Signup() {
                     }`}
                   />
                   <span className="font-medium text-sm sm:text-base">Teacher</span>
+                </Label>
+                {/* School */}
+                <Label
+                  htmlFor="school"
+                  className={`flex flex-col items-center gap-15 sm:gap-2 p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all
+                    ${
+                      role === "school"
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                >
+                  <RadioGroupItem value="school" id="school" className="sr-only" />
+                  <UserCircle
+                    className={`h-5 w-5 sm:h-6 sm:w-6 ${
+                      role === "school" ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  />
+                  <span className="font-medium text-sm sm:text-base">School</span>
                 </Label>
               </RadioGroup>
             </div>
