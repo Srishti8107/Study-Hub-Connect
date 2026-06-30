@@ -184,13 +184,24 @@ export default function AdminPanel() {
   const handleGenerateSchoolCode = async (userId: string) => {
     const randomCode = "SH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
     try {
+      
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
+          u.id === userId ? { ...u, schoolCode: randomCode } : u
+        )
+      );
       await setDoc(doc(db, "users", userId), { schoolCode: randomCode }, { merge: true });
       toast({
         title: "School Code Generated",
         description: `Assigned code: ${randomCode}`,
       });
-      await refreshUsersAndStats();
+
     } catch (err: any) {
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
+          u.id === userId ? { ...u, schoolCode: undefined } : u
+        )
+      );
       toast({
         variant: "destructive",
         title: "Error generating code",
