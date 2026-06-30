@@ -11,6 +11,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import logo from '@/components/assets/logo.png';
 
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/config/firebase";
+
+
 export default function Index() {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
@@ -20,8 +24,28 @@ export default function Index() {
   const displayName = useMemo(() => {
     if (user?.full_name?.trim()) return user.full_name.trim();
     return "there";
-  }, [user]);
- 
+  }, [user]); 
+
+  const [schoolCode, setSchoolCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSchoolProfile = async () => {
+      // Only look up if the logged-in user is a school account
+      if (user && role === "school") {
+        try {
+          const docRef = doc(db, "users", user.id);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            setSchoolCode(docSnap.data().schoolCode || null);
+          }
+        } catch (error) {
+          console.error("Error loading school code on dashboard:", error);
+        }
+      }
+    };
+
+    fetchSchoolProfile();
+  }, [user, role]);
 
   // Handle navigation from My Downloads page
   useEffect(() => {
@@ -322,7 +346,19 @@ export default function Index() {
                 ? "Manage your courses and track student progress"
                 : "Choose a category to start your learning journey"}
             </p>
+            <div>
+                {/* Institutional Code Banner for School Accounts */}
+                {role === "school" && schoolCode && (
+                  <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-purple-200 dark:border-purple-800 shadow-sm w-fit shrink-0">
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">School Code:</span>
+                    <span className="font-mono font-bold text-sm text-purple-700 dark:text-purple-400 select-all tracking-wider">
+                      {schoolCode}
+                    </span>
+                  </div>
+                )}
+            </div>
           </div>
+
           <div className="absolute -right-20 -bottom-20 w-64 h-64 rounded-full bg-white/10 blur-3xl" />
         </section>
 
@@ -348,3 +384,7 @@ export default function Index() {
     </div>
   );
 }
+function setSchoolCode(arg0: any) {
+  throw new Error("Function not implemented.");
+}
+

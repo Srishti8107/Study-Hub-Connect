@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { collection, query, where, getDocs, setDoc, doc } from "firebase/firestore";
 import {
   Card,
   CardContent,
@@ -29,6 +30,7 @@ import { z } from "zod";
 import * as api from "@/services/api";
 import type { AppRole } from "@/services/api";
 import logo from '@/components/assets/logo.png';
+import { db } from '@/config/firebase' 
 
 /* ---------------- Constants ---------------- */
 
@@ -56,6 +58,9 @@ export default function Signup() {
   const [otpExpiry, setOtpExpiry] = useState(0);
   const [countdown, setCountdown] = useState(0);
 
+  /* School Verification Code */
+  const [schoolCodeInput, setSchoolCodeInput] = useState("");
+  
   /* Submit / done */
   const [isLoading, setIsLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -190,21 +195,45 @@ export default function Signup() {
       return;
     }
 
-    setIsLoading(true);
-    const { error } = await api.signUp({ email, password, full_name: fullName, role });
-    setIsLoading(false);
+    if (!schoolCodeInput) {
+      toast({
+        variant: "destructive",
+        title: "Missing School Code",
+        description: "Enter the code of your school to proceed",
+      });
+    }
 
-    if (error) {
+    setIsLoading(true);
+    const result = await api.signUp({ email, password, full_name: fullName, role });
+    if (result.error) {
+      setIsLoading(false);
       toast({
         variant: "destructive",
         title: "Sign up failed",
-        description: error,
+        description: result.error,
       });
-    } else {
-      setDone(true);
+    } 
+    else {
+      if ((role === "student" || role === "teacher") && schoolCodeInput) {
+        try {
+          // 1. Fetch the documents from the signup_requests collection safely
+          const snap = await getDocs(collection(db, "signup_requests"));
+          
+          // 2. Find the request matching this user's email via client-side array search
+          const matchedDoc = snap.docs.find(d => d.data().email === email);
+          
+          // 3. If found, update it with the school code
+          if (matchedDoc) {
+            await setDoc(doc(db, "signup_requests", matchedDoc.id), {
+              schoolCode: schoolCodeInput.trim().toUpperCase()
+            }, { merge: true });
+          }
+        } catch (e) {
+          console.error("Error linking institutional code to request: ", e);
+        }
+      }
     }
   };
-
   /* ---------------- Success screen ---------------- */
 
   if (done) {
@@ -439,6 +468,30 @@ export default function Signup() {
                 </Label>
               </RadioGroup>
             </div>
+            {(role === "student" || role === "teacher") && (
+              <div className="space-y-2 animate-in fade-in duration-300">
+                <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                  <span>🏫</span> School Verification Code
+                  <span className="text-destructive">*</span>
+                </label>
+                
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g., SH-A4F9X2"
+                    value={schoolCodeInput}
+                    onChange={(e) => setSchoolCodeInput(e.target.value.toUpperCase())}
+                    className="w-full px-3 py-2.5 bg-background border border-input rounded-xl text-sm font-mono tracking-wider uppercase placeholder:normal-case placeholder:tracking-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:border-transparent transition-all"
+                    maxLength={9}
+                  />
+                </div>
+                
+                <p className="text-xs text-muted-foreground leading-relaxed pl-1">
+                  Enter the unique institutional code provided by your school administration. Your account request will be instantly routed to your school dashboard for approval.
+                </p>
+              </div>
+            )}
 
             {/* Submit */}
             <Button

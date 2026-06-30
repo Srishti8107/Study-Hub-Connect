@@ -70,6 +70,7 @@ interface SignupRequest {
   full_name: string;
   role: string;
   created_at: string;
+  schoolCode?: string;
 }
 
 export default function AdminPanel() {
@@ -150,7 +151,8 @@ export default function AdminPanel() {
       const list: SignupRequest[] = snap.docs.map((d) => ({
         id: d.id,
         ...(d.data() as any),
-      }));
+      }))
+      .filter((req) => req.role === "school");
 
       setSignupRequests(list);
       setStats((prev) => ({
@@ -270,6 +272,7 @@ export default function AdminPanel() {
         role: request.role,
         created_at: new Date().toISOString(),
         approved_at: new Date().toISOString(),
+        ...initialSchoolData
       });
 
       // Remove the signup request
