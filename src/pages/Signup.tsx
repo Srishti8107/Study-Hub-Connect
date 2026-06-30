@@ -204,13 +204,13 @@ export default function Signup() {
     }
 
     setIsLoading(true);
-    const result = await api.signUp({ email, password, full_name: fullName, role });
-    if (result.error) {
+    const {error} = await api.signUp({ email, password, full_name: fullName, role });
+    if (error) {
       setIsLoading(false);
       toast({
         variant: "destructive",
         title: "Sign up failed",
-        description: result.error,
+        description: error,
       });
     } 
     else {
@@ -232,6 +232,23 @@ export default function Signup() {
           console.error("Error linking institutional code to request: ", e);
         }
       }
+      
+      if ((role === "student" || role === "teacher") && schoolCodeInput) {
+        try {
+          const q = query(collection(db, "signup_requests"), where("email", "==", email));
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            const docId = snap.docs[0].id;
+            await setDoc(doc(db, "signup_requests", docId), {
+              schoolCode: schoolCodeInput.trim().toUpperCase()
+            }, { merge: true });
+          }
+        } catch (e) {
+          console.error("Error linking institutional code to request: ", e);
+        }
+      }
+      setIsLoading(false);
+      setDone(true);
     }
   };
   /* ---------------- Success screen ---------------- */

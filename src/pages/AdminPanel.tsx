@@ -125,6 +125,7 @@ export default function AdminPanel() {
           role: data.role || "",
           created_at: data.created_at || "",
           allowedCategories: data.allowedCategories || {Prastuti: false, Anubhav: false, Geomagic: false},
+          schoolCode: data.schoolCode,
         };
       });
 
@@ -151,8 +152,7 @@ export default function AdminPanel() {
       const list: SignupRequest[] = snap.docs.map((d) => ({
         id: d.id,
         ...(d.data() as any),
-      }))
-      .filter((req) => req.role === "school");
+      }));
 
       setSignupRequests(list);
       setStats((prev) => ({
@@ -182,6 +182,12 @@ export default function AdminPanel() {
   /* ---------------- SCHOOL CHECKBOXES IN ADMIN PANEL -----------------*/
 
   const handleGenerateSchoolCode = async (userId: string) => {
+    const targetUser = users.find(u => u.id === userId);
+    if (targetUser?.schoolCode) {
+      if (!confirm(`This school already has code ${targetUser.schoolCode}. Generating a new one will overwrite it. Proceed?`)) {
+        return;
+      }
+    }
     const randomCode = "SH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
     try {
       
@@ -692,14 +698,14 @@ export default function AdminPanel() {
                           <div className="font-medium truncate">{user.full_name || "No name"}</div>
                           <div className="text-sm text-muted-foreground truncate">{user.email}</div>
                           {user.role === "school" && (
-                              <div className="text-xs font-semibold text-purple-600 mt-1 bg-purple-50 px-2 py-0.5 rounded w-fit">
+                              <div className="text-xs font-semibold text-purple-600 mt-1 bg-purple-50 px-2 py-0.5 rounded w-fit" >
                                 {user.schoolCode ? `School Code: ${user.schoolCode}` : "No Code Assigned"}
                               </div>
                           )}
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge
-                            variant={
+                            variant={ 
                               user.role === "admin" 
                                 ? "destructive" 
                                 : user.role === "teacher" 
@@ -710,9 +716,9 @@ export default function AdminPanel() {
                           >
                             {user.role}
                           </Badge>
-                          {user.role === "school" && !user.schoolCode && (
+                          {user.role === "school" && (
                               <Button size="sm" variant="outline" className="h-8 text-xs text-purple-600 border-purple-300" onClick={() => handleGenerateSchoolCode(user.id)}>
-                                Generate Code
+                              {user.schoolCode ? "Regenerate Code" : "Generate Code"}
                               </Button>
                             )}  
                           {user.role !== "admin" && (

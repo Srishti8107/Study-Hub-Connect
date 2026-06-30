@@ -347,7 +347,6 @@ export default function Index() {
                 : "Choose a category to start your learning journey"}
             </p>
             <div>
-                {/* Institutional Code Banner for School Accounts */}
                 {role === "school" && schoolCode && (
                   <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-purple-200 dark:border-purple-800 shadow-sm w-fit shrink-0">
                     <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">School Code:</span>
